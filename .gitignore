@@ -6,3 +6,4 @@ test/
 .vscode/launch.json
 .vscode/ipch
 /Users/gone/Documents/Workspace/dummy1/script/.vscode
+.DS_Store
