@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <stdio.h>
 
 #include <micro_ros_arduino.h>
 #include <rcl/rcl.h>
@@ -15,7 +14,6 @@
 
 
 #include "Imu.h"
-// #include "imu_test.h"
 #include "Calculates.h"
 #include "Motor.h"
 #include "PID.h"
@@ -23,15 +21,8 @@
 
 rcl_subscription_t twist_sub;
 
-// rcl_subscription_t p_sub;
-// rcl_subscription_t i_sub;
-// rcl_subscription_t d_sub;
-// rcl_publisher_t enc_pub;
-// rcl_publisher_t rpm_pub;
-
 rcl_publisher_t odom_pub;
 rcl_publisher_t imu_pub;
-rcl_publisher_t temp_pub;
 rcl_publisher_t steer_pub;
 
 rclc_executor_t executor;
@@ -40,24 +31,16 @@ rcl_allocator_t allocator;
 rcl_node_t node;
 rcl_timer_t control_timer;
 
-unsigned long long time_offset = 0;
-unsigned long prev_cmdvel_time = 0;
-unsigned long prev_odom_update = 0;
 
 geometry_msgs__msg__Twist twist_msg;
 nav_msgs__msg__Odometry odom_msg;
 sensor_msgs__msg__JointState jointstate_msg;
-
-// std_msgs__msg__Float64 goal_vel;
-// std_msgs__msg__Float64 rpm_msg;
-// std_msgs__msg__Float64 p_msg;
-// std_msgs__msg__Float64 i_msg;
-// std_msgs__msg__Float64 d_msg;
-
 sensor_msgs__msg__Imu imu_msg;
-geometry_msgs__msg__Twist temp_msg;
 std_msgs__msg__Float64 steer_msg;
 
+unsigned long long time_offset = 0;
+unsigned long prev_cmdvel_time = 0;
+unsigned long prev_odom_update = 0;
 
 enum states
 {
@@ -108,8 +91,6 @@ const int numReadings = 5;
 double readings[numReadings];
 int readindex = 0.0;
 double total = 0.0;
-// double average = 0.0;
-
 
 PID pid(min_val, max_val, kp, ki, kd);
 control motor(motor_pin_R, motor_pin_L, motor_pin_R_EN, motor_pin_L_EN, servo_pin);
@@ -203,25 +184,6 @@ double MA_filter(double vel)
   return average;
 }
 
-// void subpvel_callback(const void *msgin)
-// {
-//   const std_msgs__msg__Float64 * msg = (const std_msgs__msg__Float64 *)msgin;
-//   p_msg.data = msg->data ;
-//   pid.updatepvel(p_msg.data);
-// }
-// void subivel_callback(const void *msgin)
-// {
-//   const std_msgs__msg__Float64 * msg = (const std_msgs__msg__Float64 *)msgin;
-//   i_msg.data = msg->data;
-//   pid.updateivel(i_msg.data);
-// }
-// void subdvel_callback(const void *msgin)
-// {
-//   const std_msgs__msg__Float64 * msg = (const std_msgs__msg__Float64 *)msgin;
-//   i_msg.data = msg->data;
-//   pid.updatedvel(d_msg.data);
-// }
-
 void move()
 {
   if((millis() - prev_cmdvel_time) >= 200)
@@ -231,19 +193,13 @@ void move()
   }
   double calc_dc_rpm = calculates.CalculateRpm(twist_msg.linear.x);
   double ecd_rpm = getRPM();
-  // goal_vel.data = calc_dc_rpm;
-  // goal_vel.data = ecd_rpm;
   double pidvel = pid.pidcompute(calc_dc_rpm, ecd_rpm);
   float req_anguler_vel_z = twist_msg.angular.z;
   double motor_vel = MA_filter(pidvel);
-  // rpm_msg.data = motor_vel;
   motor.run(motor_vel);
   float current_steering_angle = motor.steer(req_anguler_vel_z);
   steer_msg.data = current_steering_angle;
   Calculates::vel current_vel = calculates.get_velocities(current_steering_angle, ecd_rpm);
-
-  temp_msg.linear.x = current_vel.linear_x; // test publish
-  temp_msg.angular.z = current_vel.angular_z; // test publish
 
   unsigned long now = millis();
   float dt = (now  - prev_odom_update) / 1000.0;
@@ -253,10 +209,7 @@ void move()
 
 void publishData()
 {
-  // RCSOFTCHECK(rcl_publish(&enc_pub, &goal_vel, NULL));
-  // RCSOFTCHECK(rcl_publish(&rpm_pub, &rpm_msg, NULL));
   imu_msg = imu.getdata();
-  // imu_msg = imu.operation();
   odom_msg = odom.getOdomData();
 
   struct timespec time_stamp = getTime();
@@ -266,7 +219,6 @@ void publishData()
   imu_msg.header.stamp.sec = time_stamp.tv_sec;
   imu_msg.header.stamp.nanosec = time_stamp.tv_nsec;
 
-  RCSOFTCHECK(rcl_publish(&temp_pub, &temp_msg, NULL));
   RCSOFTCHECK(rcl_publish(&imu_pub, &imu_msg, NULL));
   RCSOFTCHECK(rcl_publish(&odom_pub, &odom_msg, NULL));
   RCSOFTCHECK(rcl_publish(&steer_pub, &steer_msg, NULL));
@@ -297,54 +249,21 @@ bool createEntities()
     ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
     "cmd_vel"
   ));
-  // RCCHECK(rclc_subscription_init_default(
-  //   &p_sub,
-  //   &node,
-  //   ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float64),
-  //   "p_vel"
-  // ));
-  // RCCHECK(rclc_subscription_init_default(
-  //   &i_sub,
-  //   &node,
-  //   ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float64),
-  //   "i_vel"
-  // ));
-  // RCCHECK(rclc_subscription_init_default(
-  //   &d_sub,
-  //   &node,
-  //   ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float64),
-  //   "d_vel"
-  // ));
+
   RCCHECK(rclc_publisher_init_default(
     &odom_pub,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(nav_msgs, msg, Odometry),
     "odom/unfiltered"
   ));
-  RCCHECK(rclc_publisher_init_default(
-    &temp_pub,
-    &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-    "temp_vel"
-  ));
-  // RCCHECK(rclc_publisher_init_default(
-  //   &enc_pub,
-  //   &node,
-  //   ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float64),
-  //   "goal_vel"
-  // ));
-  // RCCHECK(rclc_publisher_init_default(
-  //   &rpm_pub,
-  //   &node,
-  //   ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Float64),
-  //   "rpm_vel"
-  // ));
+
   RCCHECK(rclc_publisher_init_default(
     &imu_pub,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu),
     "imu/data"
   ));
+
   RCCHECK(rclc_publisher_init_default(
     &steer_pub,
     &node,
@@ -371,28 +290,6 @@ bool createEntities()
     ON_NEW_DATA
   ));
 
-  // RCCHECK(rclc_executor_add_subscription(
-  //   &executor,
-  //   &p_sub,
-  //   &p_msg,
-  //   &subpvel_callback,
-  //   ON_NEW_DATA
-  // ));
-  // RCCHECK(rclc_executor_add_subscription(
-  //   &executor,
-  //   &i_sub,
-  //   &i_msg,
-  //   &subivel_callback,
-  //   ON_NEW_DATA
-  // ));
-  // RCCHECK(rclc_executor_add_subscription(
-  //   &executor,
-  //   &d_sub,
-  //   &d_msg,
-  //   &subdvel_callback,
-  //   ON_NEW_DATA
-  // ));
-
   RCCHECK(rclc_executor_add_timer(&executor, &control_timer));
 
   syncTime();
@@ -405,15 +302,9 @@ bool destroyEntities()
   (void) rmw_uros_set_context_entity_destroy_session_timeout(rmw_context, 0);
 
   rcl_publisher_fini(&imu_pub, &node);
-  // rcl_publisher_fini(&enc_pub, &node);
-  // rcl_publisher_fini(&rpm_pub, &node);
   rcl_publisher_fini(&odom_pub, &node);
-  rcl_publisher_fini(&temp_pub, &node);
   rcl_publisher_fini(&steer_pub, &node);
   rcl_subscription_fini(&twist_sub, &node);
-  // rcl_subscription_fini(&p_sub, &node);
-  // rcl_subscription_fini(&i_sub, &node);
-  // rcl_subscription_fini(&d_sub, &node);
   rclc_executor_fini(&executor);
   rclc_support_fini(&support);
   rcl_timer_fini(&control_timer);
@@ -440,14 +331,11 @@ void setup()
       }
     delay(1000);
     }
-
   }
-
 
   attachInterrupt(pA, encoderCount, FALLING);
   pinMode(pB, INPUT);
   attachInterrupt(pZ, encoderReset, FALLING);
-
 
   set_microros_transports();
 }
