@@ -53,7 +53,7 @@ enum states
 
 
 double  wheel_diameter = 0.073; //M
-double  wheel_distence_x = 0.173; //M
+double  wheel_distance_x = 0.173; //M
 double  gear_ratio = 0.3513;
 double  encoder_gear_ratio = 0.7115;
 
@@ -94,7 +94,7 @@ double total = 0.0;
 
 PID pid(min_val, max_val, kp, ki, kd);
 control motor(motor_pin_R, motor_pin_L, motor_pin_R_EN, motor_pin_L_EN, servo_pin);
-Calculates calculates(max_rpm, gear_ratio, encoder_gear_ratio, wheel_diameter, wheel_distence_x);
+Calculates calculates(max_rpm, gear_ratio, encoder_gear_ratio, wheel_diameter, wheel_distance_x);
 Imu imu;
 Odom odom;
 
@@ -194,10 +194,10 @@ void move()
   double calc_dc_rpm = calculates.CalculateRpm(twist_msg.linear.x);
   double ecd_rpm = getRPM();
   double pidvel = pid.pidcompute(calc_dc_rpm, ecd_rpm);
-  float req_anguler_vel_z = twist_msg.angular.z;
+  float req_angular_vel_z = twist_msg.angular.z;
   double motor_vel = MA_filter(pidvel);
   motor.run(motor_vel);
-  float current_steering_angle = motor.steer(req_anguler_vel_z);
+  float current_steering_angle = motor.steer(req_angular_vel_z);
   steer_msg.data = current_steering_angle;
   Calculates::vel current_vel = calculates.get_velocities(current_steering_angle, ecd_rpm);
 
