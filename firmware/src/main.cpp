@@ -238,10 +238,17 @@ bool createEntities()
 {
   allocator = rcl_get_default_allocator();
 
-  RCCHECK(rclc_support_init(&support, 0, NULL, &allocator));
-  rcl_node_options_t node_ops = rcl_node_get_default_options();
-  node_ops.domain_id = 7;
-  RCCHECK(rclc_node_init_with_options(&node, "Dummy1_Due_node", "", &support, &node_ops));
+  rcl_init_options_t init_options = rcl_get_zero_initialized_init_options();
+
+  RCCHECK(rcl_init_options_init(&init_options, allocator));
+  // rmw_init_options_t* rmw_options = rcl_init_options_get_rmw_init_options(&init_options);
+
+  size_t domain_id = 7;
+  RCCHECK(rcl_init_options_set_domain_id(&init_options, domain_id));
+
+  RCCHECK(rclc_support_init_with_options(&support, 0, NULL, &init_options, &allocator));
+
+  RCCHECK(rclc_node_init_default(&node, "Dummy1_Due_node", "", &support));
 
   RCCHECK(rclc_subscription_init_default(
     &twist_sub,
