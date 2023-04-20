@@ -12,7 +12,7 @@
 #include <sensor_msgs/msg/imu.h>
 #include <sensor_msgs/msg/joint_state.h>
 
-
+#include <Dummy1_config.h>
 #include "Imu.h"
 #include "Calculates.h"
 #include "Motor.h"
@@ -50,28 +50,6 @@ enum states
   agent_disconnected
 } state;
 
-
-
-double  wheel_diameter = 0.073; //M
-double  wheel_distance_x = 0.173; //M
-double  gear_ratio = 0.3513;
-double  encoder_gear_ratio = 0.7115;
-
-#define max_rpm 176
-//motor config
-#define motor_pin_R 2
-#define motor_pin_L 3
-#define servo_pin 4
-#define motor_pin_R_EN 5
-#define motor_pin_L_EN 6
-
-//encoder config
-#define pA 10
-#define pB 11
-#define pZ 12
-
-#define Count_per_Revolution 6000
-
 volatile signed long cnt_ = 0l;
 volatile signed char dir_ = 1;
 
@@ -79,22 +57,15 @@ unsigned long prev_count_time = 0.0l;
 long prev_count_tick = 0.0l;
 double prev_encoder_vel = 0.0;
 
-//PID config
-#define kp 1.1
-#define ki 0
-#define kd 1
-int min_val = -255;
-int max_val = 255;
-
 //이동평균필터
 const int numReadings = 5;
 double readings[numReadings];
 int readindex = 0.0;
 double total = 0.0;
 
-PID pid(min_val, max_val, kp, ki, kd);
-control motor(motor_pin_R, motor_pin_L, motor_pin_R_EN, motor_pin_L_EN, servo_pin);
-Calculates calculates(max_rpm, gear_ratio, encoder_gear_ratio, wheel_diameter, wheel_distance_x);
+PID pid(Min_val, Max_val, Kp, Ki, Kd);
+control motor(Motor_pin_R, Motor_pin_L, Motor_pin_R_EN, Motor_pin_L_EN, Servo_pin);
+Calculates calculates(Max_rpm, Gear_ratio, Encoder_gear_ratio, Wheel_diameter, Wheel_distance_x);
 Imu imu;
 Odom odom;
 
@@ -139,7 +110,7 @@ struct timespec getTime()
 
 void encoderCount()
 {
-  dir_ = (digitalRead(pB) == HIGH)? -1: 1;
+  dir_ = (digitalRead(PB) == HIGH)? -1: 1; // 엔코더의 방향이 반대로 설치됨
   cnt_ += dir_;
 }
 void encoderReset(){ cnt_ = 0; }
@@ -155,7 +126,7 @@ double getRPM()
 
   prev_count_tick = current_tick;
   prev_count_time = current_time;
-  double current_encoder_vel = (60.0 * delta_tick / (Count_per_Revolution * encoder_gear_ratio )) / dtm;
+  double current_encoder_vel = (60.0 * delta_tick / (Count_per_Revolution * Encoder_gear_ratio )) / dtm;
   if(abs(prev_encoder_vel - current_encoder_vel) > 200.0)
   {
     return prev_encoder_vel;
@@ -340,9 +311,9 @@ void setup()
     }
   }
 
-  attachInterrupt(pA, encoderCount, FALLING);
-  pinMode(pB, INPUT);
-  attachInterrupt(pZ, encoderReset, FALLING);
+  attachInterrupt(PA, encoderCount, FALLING);
+  pinMode(PB, INPUT);
+  attachInterrupt(PZ, encoderReset, FALLING);
 
   set_microros_transports();
 }
