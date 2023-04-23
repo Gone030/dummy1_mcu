@@ -10,7 +10,7 @@
 //Robot spec
 #define Wheel_diameter 0.074
 #define Wheel_distance_x 0.173
-#define Gear_ratio 0.3513
+#define Gear_ratio 0.3513 // 모터에 부착된 기어
 
 /*
         Front       __
@@ -23,7 +23,7 @@
 */
 
 //Encoder config
-#define Encoder_gear_ratio 0.7115
+#define Encoder_gear_ratio 0.7115 // 엔코더에 부착된 기어
 #define PA 10
 #define PB 11
 #define PZ 12
