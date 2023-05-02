@@ -55,4 +55,12 @@ dummy1_bringup 패키지에 수록된 dummy1_teleop_twist_keyboard 로 키보드
 ros2 run dummy1_bringup teleop
 ```
 
+### 3. SLAM
+
+다음 명령어를 통해 SLAM_Toolbox 패키지를 실행시켜 SLAM을 시작합니다.
+
+```
+ros2 launch dummy1_navigation slam.launch.py
+```
+
 
