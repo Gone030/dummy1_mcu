@@ -9,7 +9,7 @@
 
 //Robot spec
 #define Wheel_diameter 0.074
-#define Wheel_distance_x 0.173
+#define Wheel_distance_x 0.185
 #define Gear_ratio 0.3513 // 모터에 부착된 기어
 
 /*
