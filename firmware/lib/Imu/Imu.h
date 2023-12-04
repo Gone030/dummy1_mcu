@@ -7,8 +7,11 @@
 class Imu
 {
 private:
+    // AFS_SEL = 0의 경우 +-2g 까지 표현되는데 이때 1g = 16384 이며 수평에서 움직이지 않고 있으면 +Z 값은 16384
     const float accel_scale_ = 1 / 16384.0;
+    // FS_SEL = 0의 경우 full scale 범위는 +-250 이며 이떼 Sensitivity는 131 LSB/('/sec)
     const float gyro_scale_ = 1 / 131.0;
+    // 따라서 Angle = ADC output / Sensitivity
 
     MPU9250 accelerometer_;
     MPU9250 gyroscope_;
@@ -47,8 +50,10 @@ public:
     {
         char frame_name[] = "imu_link";
         imu_msg_.header.frame_id.capacity = sizeof(frame_name);
+        //malloc함수로 frame name의 크기 만큼 메모리 할당
         imu_msg_.header.frame_id.data = (char*)malloc(imu_msg_.header.frame_id.capacity * sizeof(char));
         imu_msg_.header.frame_id.size = sizeof(frame_name);
+        //strcpy(string copy로 문자열 복사. imu_link to frame id data)
         strcpy(imu_msg_.header.frame_id.data, "imu_link");
     }
     ~Imu()

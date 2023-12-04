@@ -7,6 +7,7 @@ Odom::Odom():
 {
     char string1[] = "odom";
     odometry_msg_.header.frame_id.capacity = sizeof(string1);
+    // malloc 함수로 capacity에 할당된 메모리 크기 만큼을 확보
     odometry_msg_.header.frame_id.data = (char*)malloc(odometry_msg_.header.frame_id.capacity * sizeof(char));
     odometry_msg_.header.frame_id.size = sizeof(string1);
     strcpy(odometry_msg_.header.frame_id.data, "odom");
@@ -31,17 +32,17 @@ void Odom::integrateRK2(double linear, double angular)
 
 void Odom::integrate(double linear, double angular)
 {
-    if( angular == 0 || fabs(angular) < 1e-3 )
+    if( angular == 0 || fabs(angular) < 1e-3 ) // 직진일 경우
     {
         integrateRK2(linear, angular);
     }
-    else if(linear == 0)
+    else if(linear == 0) // 정지일 경우
     {
         x_pose_ += 0;
         y_pose_ += 0;
         theta_ += 0;
     }
-    else
+    else // 방향 변동이 있을 경우
     {
         const double theta_old = theta_;
         const double r = linear / angular;

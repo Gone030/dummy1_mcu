@@ -33,7 +33,7 @@ void control::run(double pwm_duty)
         analogWrite(motor_pin_F_,pwm_duty_);
         analogWrite(motor_pin_R_,0);
     }
-    else if(pwm_duty < 0)
+    else if(pwm_duty < 0) //역방향
     {
         digitalWrite(motor_pin_F_EN_, HIGH);
         digitalWrite(motor_pin_R_EN_, HIGH);

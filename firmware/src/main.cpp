@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include <micro_ros_arduino.h>
-#include <rcl/rcl.h>
+#include <rcl/rcl.h> // ROS Client Library for C
 #include <rcl/error_handling.h>
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
@@ -25,9 +25,11 @@ rcl_publisher_t odom_pub;
 rcl_publisher_t imu_pub;
 rcl_publisher_t steer_pub;
 
-rclc_executor_t executor;
-rclc_support_t support;
-rcl_allocator_t allocator;
+// rclc 에서는 executor, support, allocator를 선언 해야 함
+rclc_executor_t executor; // 임베디드 환경에서 동적 메모리의 할당, 해제
+rclc_support_t support; // ROS 클라이언트의 생성, rcl_node, rcl_subscription, rcl_timer, rclc_executor 생성 단순화
+rcl_allocator_t allocator; // subscription timer callback
+
 rcl_node_t node;
 rcl_timer_t control_timer;
 
@@ -82,6 +84,7 @@ void error_loop(){
   }
 }
 
+// ROS 클라이언트가 제대로 생성돼있는지 검사
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
 #define EXECUTE_EVERY_N_NS(MS, X) do{ \
@@ -258,7 +261,7 @@ bool createEntities()
   ));
 
   executor = rclc_executor_get_zero_initialized_executor();
-  RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator));
+  RCCHECK(rclc_executor_init(&executor, &support.context, 2, &allocator)); //(subscriber + timer)
 
   RCCHECK(rclc_executor_add_subscription(
     &executor,
