@@ -1,5 +1,9 @@
 # Dummy1 MCU
 
+![실물1](https://github.com/Gone030/dummy1_mcu/assets/89852937/6a801464-3953-4e7d-848f-80e7ba4308e2)
+
+![실물2](https://github.com/Gone030/dummy1_mcu/assets/89852937/f6fe0611-ae4d-4477-82a8-a49e15eef6b1)
+
 ## 소개
 [Dummy1](https://github.com/Gone030/Dummy1)의 MCU(Arduino Due)의 코드 입니다. Encoder, IMU, DC Motor, Servo motor를 제어합니다.
 추가적으로 PID 제어를 위한 튜닝을 하는 코드가 별도의 폴더로 추가되어 있습니다.
