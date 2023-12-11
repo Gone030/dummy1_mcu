@@ -1,6 +1,6 @@
 # Dummy1 MCU
 
-![실물1](https://github.com/Gone030/dummy1_mcu/assets/89852937/6a801464-3953-4e7d-848f-80e7ba4308e2)
+![실물1](https://github.com/Gone030/dummy1_mcu/assets/89852937/cfba7c47-eaa2-4da2-b8ce-a86a2c5e9a2e)
 
 ![실물2](https://github.com/Gone030/dummy1_mcu/assets/89852937/f6fe0611-ae4d-4477-82a8-a49e15eef6b1)
 
